@@ -7,23 +7,25 @@ function love.load(arg)
     elements = {
       {
         etype = "text",
-        name = "title",
         value = "some title",
         x = 100,
         y = 100
       },
       {
         etype = "text",
-        name = "text",
         value = "some text",
         x = 100,
         y = 125
       }
     }
     
+    buttons = {}
+      
     inputHandler = {
       setCommand = function(self, command)
+        removeButtons()
         self.activeCommand = command
+        --self.activeCommand:setButtons()
       end,
       handleText = function(self, text)
         self.activeCommand:handleText(text)
@@ -33,6 +35,9 @@ function love.load(arg)
       end,      
       abort = function(self)
         self.activeCommand = simpleCommandMode(self)
+      end,
+      render = function(self)
+        self.activeCommand:render()
       end
     }
     
@@ -43,8 +48,8 @@ end
 
 function simpleCommandMode(inputHandler)
   local delegates = {
-    t = editTextMode(inputHandler, elements[1]),
-    c = editTextMode(inputHandler, elements[2])
+    q = editTextMode(inputHandler, elements[1]),
+    w = editTextMode(inputHandler, elements[2])
   }
   return commandMode(inputHandler, delegates)
 end
@@ -61,6 +66,14 @@ function commandMode(inputHandler, delegates)
     end,
     handleSpecial = function(self, special)
       
+    end,
+    setButtons = function()
+      
+    end,
+    render = function()
+      for k, v in pairs(delegates) do
+        drawButton(v.element.x - 40, v.element.y, k)
+      end
     end
   }
 end
@@ -75,6 +88,9 @@ function editTextMode(inputHandler, linkedElement)
       if special == "backspace" then
         backspace(linkedElement)
       end
+    end,
+    render = function(self)
+      drawTextHighlight(self.element.x - 40, self.element.y)
     end
   }
 end
@@ -87,6 +103,7 @@ function love.draw()
   for k, v in ipairs(elements) do
     love.graphics.printf(v.value, v.x, v.y, love.graphics.getWidth())
   end  
+  inputHandler:render()
 end
 
 function love.keypressed(key, unicode)
@@ -119,4 +136,20 @@ function newItem()
     title = 'Some title',
     text = 'Some text'
   }
+end
+
+function removeButtons()
+  buttons = {}
+end
+
+function drawButton(x,y,key)
+  love.graphics.setColor(255,255,255)
+  love.graphics.rectangle("fill", x, y, 20, 20)
+  love.graphics.setColor(255,0,0)
+  love.graphics.print(key,  x+5, y+5)
+  love.graphics.setColor(255,255,255)
+end
+
+function drawTextHighlight(x,y)
+  love.graphics.print(">>", x, y)
 end
