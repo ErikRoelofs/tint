@@ -43,8 +43,8 @@ end
 
 function simpleCommandMode(inputHandler)
   local delegates = {
-    c = editTextMode(inputHandler),
-    t = editTitleMode(inputHandler)
+    t = editTextMode(inputHandler, elements[1]),
+    c = editTextMode(inputHandler, elements[2])
   }
   return commandMode(inputHandler, delegates)
 end
@@ -65,27 +65,15 @@ function commandMode(inputHandler, delegates)
   }
 end
 
-function editTextMode(inputHandler)
+function editTextMode(inputHandler, linkedElement)  
   return {
+    element = linkedElement,
     handleText = function(self, text)
-      append('text', text)
+      append(linkedElement, text)
     end,
     handleSpecial = function(self, special)
       if special == "backspace" then
-        backspace('text')
-      end
-    end
-  }
-end
-
-function editTitleMode(inputHandler)
-  return {
-    handleText = function(self, text)
-      append('title', text)
-    end,
-    handleSpecial = function(self, special)
-      if special == "backspace" then
-        backspace('title')
+        backspace(linkedElement)
       end
     end
   }
@@ -116,9 +104,6 @@ end
 
 function love.textinput(t)  
   inputHandler:handleText(t)
-end
-
-function currentItem()  
 end
 
 function append(element, text)
