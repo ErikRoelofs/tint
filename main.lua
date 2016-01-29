@@ -1,6 +1,7 @@
 function love.load(arg)
   
     if arg[#arg] == "-debug" then require("mobdebug").start() end
+    io.stdout:setvbuf("no") 
   
     require('string')
   
@@ -26,7 +27,7 @@ function love.load(arg)
       handleText = function(self, text)
         self.activeCommand:handleText(text)
       end,
-      handleSpecial = function(self, special)
+      handleSpecial = function(self, special)      
         self.activeCommand:handleSpecial(special)
       end,      
       abort = function(self)
@@ -43,10 +44,11 @@ function love.load(arg)
 end
 
 function simpleCommandMode(inputHandler)
-  local delegates = {
-    q = editTextMode(inputHandler, elements[1]),
-    w = editTextMode(inputHandler, elements[2])
-  }
+  local inputs = { 'q', 'w', 'e', 'r', 't' , 'y', 'u', 'i', 'o', 'p' }
+  local delegates = {}
+  for k, v in ipairs(elements) do
+    delegates[inputs[k]] = editTextMode(inputHandler, v)
+  end
   return commandMode(inputHandler, delegates)
 end
 
@@ -61,7 +63,10 @@ function commandMode(inputHandler, delegates)
       end     
     end,
     handleSpecial = function(self, special)
-      
+      if special == "return" then
+        element = newItem()
+        inputHandler:setCommand(editTextMode(self.handler, element))
+      end
     end,
     setButtons = function()
       
@@ -76,6 +81,7 @@ end
 
 function editTextMode(inputHandler, linkedElement)  
   return {
+    handler = inputHandler,
     element = linkedElement,
     handleText = function(self, text)
       append(linkedElement, text)
@@ -83,6 +89,10 @@ function editTextMode(inputHandler, linkedElement)
     handleSpecial = function(self, special)
       if special == "backspace" then
         backspace(linkedElement)
+      end
+      if special == "return" then
+        element = newItem()
+        inputHandler:setCommand(editTextMode(self.handler, element))
       end
     end,
     render = function(self)
@@ -109,6 +119,9 @@ function love.keypressed(key, unicode)
   if key == "backspace" then
     inputHandler:handleSpecial("backspace")
   end
+  if key == "return" then
+    inputHandler:handleSpecial("return")
+  end
 end
 
 function love.keyreleased(key)
@@ -128,10 +141,14 @@ function backspace(element)
 end
 
 function newItem()
-  return {
-    title = 'Some title',
-    text = 'Some text'
+  local key = #elements + 1
+  elements[key] = {
+    etype = "text",
+    value = "newline",
+    x = 100,
+    y = 75 + 25*key
   }
+  return elements[key]
 end
 
 function drawButton(x,y,key)
