@@ -18,14 +18,10 @@ function love.load(arg)
         y = 125
       }
     }
-    
-    buttons = {}
-      
+          
     inputHandler = {
       setCommand = function(self, command)
-        removeButtons()
-        self.activeCommand = command
-        --self.activeCommand:setButtons()
+        self.activeCommand = command        
       end,
       handleText = function(self, text)
         self.activeCommand:handleText(text)
@@ -136,10 +132,6 @@ function newItem()
     title = 'Some title',
     text = 'Some text'
   }
-end
-
-function removeButtons()
-  buttons = {}
 end
 
 function drawButton(x,y,key)
