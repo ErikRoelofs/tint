@@ -1,3 +1,9 @@
+lastId = 0
+function newId()
+  lastId = lastId + 1
+  return lastId
+end  
+
 function love.load(arg)
   
     if arg[#arg] == "-debug" then require("mobdebug").start() end
@@ -7,19 +13,42 @@ function love.load(arg)
   
     elements = {
       {
+        id = newId(),
         etype = "text",
         value = "some title",
-        x = 100,
-        y = 100
       },
       {
+        id = newId(),
         etype = "text",
         value = "some text",
-        x = 100,
-        y = 125
       }
     }
-          
+    
+    renderer = {
+      basex = 100,
+      basey = 75,
+
+      renderElements = function(self, elements)
+        for k, v in ipairs(elements) do
+          love.graphics.printf(v.value, self.basex, self.basey + 25*k, love.graphics.getWidth())
+        end  
+      end,
+      renderButton = function(self, buttonKey, element)
+        for k, v in ipairs(elements) do
+          if element.id == v.id then
+            drawButton(self.basex - 40, self.basey + 25*k, buttonKey)
+          end
+        end          
+      end,
+      renderTextHighlight = function(self, element)
+        for k, v in ipairs(elements) do
+          if element.id == v.id then
+            drawTextHighlight(self.basex - 40, self.basey + 25*k)
+          end
+        end          
+      end
+    }
+
     inputHandler = {
       setCommand = function(self, command)
         self.activeCommand = command        
@@ -73,7 +102,7 @@ function commandMode(inputHandler, delegates)
     end,
     render = function()
       for k, v in pairs(delegates) do
-        drawButton(v.element.x - 40, v.element.y, k)
+        renderer:renderButton(k, v.element)
       end
     end
   }
@@ -91,12 +120,12 @@ function editTextMode(inputHandler, linkedElement)
         backspace(linkedElement)
       end
       if special == "return" then
-        element = newItem()
+        local element = newItem()
         inputHandler:setCommand(editTextMode(self.handler, element))
       end
     end,
     render = function(self)
-      drawTextHighlight(self.element.x - 40, self.element.y)
+      renderer:renderTextHighlight(self.element)
     end
   }
 end
@@ -106,9 +135,7 @@ function love.update(dt)
 end
 
 function love.draw()
-  for k, v in ipairs(elements) do
-    love.graphics.printf(v.value, v.x, v.y, love.graphics.getWidth())
-  end  
+  renderer:renderElements(elements)
   inputHandler:render()
 end
 
@@ -143,10 +170,9 @@ end
 function newItem()
   local key = #elements + 1
   elements[key] = {
+    id = newId(),
     etype = "text",
     value = "newline",
-    x = 100,
-    y = 75 + 25*key
   }
   return elements[key]
 end
@@ -162,3 +188,4 @@ end
 function drawTextHighlight(x,y)
   love.graphics.print(">>", x, y)
 end
+
