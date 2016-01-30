@@ -120,7 +120,8 @@ function editTextMode(inputHandler, linkedElement)
         backspace(linkedElement)
       end
       if special == "return" then
-        local element = newItem()
+        local addAfter = findPosition(self.element) + 1
+        local element = newItem(addAfter)
         inputHandler:setCommand(editTextMode(self.handler, element))
       end
     end,
@@ -167,14 +168,23 @@ function backspace(element)
   element.value = string.sub( element.value, 1, string.len( element.value ) - 1)
 end
 
-function newItem()
-  local key = #elements + 1
-  elements[key] = {
+function newItem(addAt)
+  addAt = addAt or #elements + 1
+  local item = {
     id = newId(),
     etype = "text",
     value = "newline",
   }
-  return elements[key]
+  table.insert(elements, addAt, item)
+  return item
+end
+
+function findPosition(element)
+  for k, v in ipairs(elements) do
+    if v.id == element.id then
+      return k
+    end
+  end
 end
 
 function drawButton(x,y,key)
