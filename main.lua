@@ -22,16 +22,25 @@ function love.load(arg)
         etype = "text",
         value = "some text",
       }
-    }
+    }    
     
     renderer = {
       basex = 100,
       basey = 75,
+      renderers = {textRenderer()},
 
       renderElements = function(self, elements)
-        for k, v in ipairs(elements) do
-          love.graphics.printf(v.value, self.basex, self.basey + 25*k, love.graphics.getWidth())
+        for k, v in ipairs(elements) do          
+          self:renderElement(v, k)
         end  
+      end,
+      renderElement = function(self, element, pos)
+        for _, renderer in ipairs(self.renderers) do
+          if renderer:canRender(element) then
+            renderer:handleRender(element, self.basex, self.basey + 25*pos)
+            return nil
+          end
+        end
       end,
       renderButton = function(self, buttonKey, element)
         for k, v in ipairs(elements) do
@@ -70,6 +79,17 @@ function love.load(arg)
     initialMode = simpleCommandMode(inputHandler)
     inputHandler:setCommand(initialMode)
     
+end
+
+function textRenderer()
+  return {
+    canRender = function(self, element)
+      return element.etype == "text"
+    end,
+    handleRender = function(self, element, x, y)
+      love.graphics.printf(element.value, x, y, love.graphics.getWidth())
+    end
+  }
 end
 
 function simpleCommandMode(inputHandler)
