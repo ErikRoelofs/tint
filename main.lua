@@ -6,58 +6,26 @@ end
 
 function love.load(arg)
   
-    if arg[#arg] == "-debug" then require("mobdebug").start() end
+    if arg[#arg] == "-debug" then debug = true else debug = false end
+    if debug then require("mobdebug").start() end
     io.stdout:setvbuf("no") 
+    
+    font = love.graphics.newFont()
   
+    lc = require "renderer/load"
+    lc:register("edittext", require "customlayout/edittext")
+    lc:register("button", require "customlayout/button")
+  
+    root = lc:build("root", {})
+    root:addChild(lc:build("linear", { direction="v", width="fill", height="wrap", margin = lc.margin(100)} ) )
     require('string')
   
-    elements = {
-      {
-        id = newId(),
-        etype = "text",
-        value = "some title",
-      },
-      {
-        id = newId(),
-        etype = "text",
-        value = "some text",
-      }
-    }    
+    elements = {}    
+    newItem()
+    newItem()
+  
+    root:layoutingPass()
     
-    renderer = {
-      basex = 100,
-      basey = 75,
-      renderers = {textRenderer()},
-
-      renderElements = function(self, elements)
-        for k, v in ipairs(elements) do          
-          self:renderElement(v, k)
-        end  
-      end,
-      renderElement = function(self, element, pos)
-        for _, renderer in ipairs(self.renderers) do
-          if renderer:canRender(element) then
-            renderer:handleRender(element, self.basex, self.basey + 25*pos)
-            return nil
-          end
-        end
-      end,
-      renderButton = function(self, buttonKey, element)
-        for k, v in ipairs(elements) do
-          if element.id == v.id then
-            drawButton(self.basex - 40, self.basey + 25*k, buttonKey)
-          end
-        end          
-      end,
-      renderTextHighlight = function(self, element)
-        for k, v in ipairs(elements) do
-          if element.id == v.id then
-            drawTextHighlight(self.basex - 40, self.basey + 25*k)
-          end
-        end          
-      end
-    }
-
     inputHandler = {
       setCommand = function(self, command)
         self.activeCommand = command        
@@ -79,17 +47,6 @@ function love.load(arg)
     initialMode = simpleCommandMode(inputHandler)
     inputHandler:setCommand(initialMode)
     
-end
-
-function textRenderer()
-  return {
-    canRender = function(self, element)
-      return element.etype == "text"
-    end,
-    handleRender = function(self, element, x, y)
-      love.graphics.printf(element.value, x, y, love.graphics.getWidth())
-    end
-  }
 end
 
 function simpleCommandMode(inputHandler)
@@ -121,8 +78,8 @@ function commandMode(inputHandler, delegates)
       
     end,
     render = function()
-      for k, v in pairs(delegates) do
-        renderer:renderButton(k, v.element)
+      for k, v in pairs(delegates) do        
+        v.element.view:getChild(1).text = k
       end
     end
   }
@@ -146,7 +103,7 @@ function editTextMode(inputHandler, linkedElement)
       end
     end,
     render = function(self)
-      renderer:renderTextHighlight(self.element)
+      self.element.view:getChild(1).text = ">"
     end
   }
 end
@@ -156,8 +113,9 @@ function love.update(dt)
 end
 
 function love.draw()
-  renderer:renderElements(elements)
   inputHandler:render()
+  root:layoutingPass()
+  root:render()  
 end
 
 function love.keypressed(key, unicode)
@@ -181,20 +139,23 @@ function love.textinput(t)
 end
 
 function append(element, text)
-  element.value = element.value .. text  
+  element.view:getChild(2).text = element.view:getChild(2).text .. text    
 end
 
 function backspace(element)
-  element.value = string.sub( element.value, 1, string.len( element.value ) - 1)
+  element.view:getChild(2).text = string.sub( element.view:getChild(2).text, 1, string.len( element.view:getChild(2).text ) - 1)
 end
 
 function newItem(addAt)
   addAt = addAt or #elements + 1
   local item = {
     id = newId(),
-    etype = "text",
-    value = "newline",
+    etype = "text",    
+    view = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "newline" }, buttonOptions = {text = "."} } ),    
   }
+
+  root:getChild(1):addChild(item.view)
+  root:layoutingPass()
   table.insert(elements, addAt, item)
   return item
 end
@@ -206,16 +167,3 @@ function findPosition(element)
     end
   end
 end
-
-function drawButton(x,y,key)
-  love.graphics.setColor(255,255,255)
-  love.graphics.rectangle("fill", x, y, 20, 20)
-  love.graphics.setColor(255,0,0)
-  love.graphics.print(key,  x+5, y+5)
-  love.graphics.setColor(255,255,255)
-end
-
-function drawTextHighlight(x,y)
-  love.graphics.print(">>", x, y)
-end
-
