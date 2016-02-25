@@ -12,7 +12,7 @@ function love.load(arg)
     
     font = love.graphics.newFont()
   
-    lc = require "renderer/load"
+    lc = require "load"
     lc:register("edittext", require "customlayout/edittext")
     lc:register("button", require "customlayout/button")
   
@@ -27,8 +27,11 @@ function love.load(arg)
     root:layoutingPass()
     
     inputHandler = {
+      activeCommand = { unset = function() end },
       setCommand = function(self, command)
+        self.activeCommand:unset()
         self.activeCommand = command        
+        self.activeCommand:set()
       end,
       handleText = function(self, text)
         self.activeCommand:handleText(text)
@@ -37,7 +40,7 @@ function love.load(arg)
         self.activeCommand:handleSpecial(special)
       end,      
       abort = function(self)
-        self.activeCommand = simpleCommandMode(self)
+        self:setCommand(simpleCommandMode(self))
       end,
       render = function(self)
         self.activeCommand:render()
@@ -60,6 +63,7 @@ end
 
 function commandMode(inputHandler, delegates)
   return {
+    delegates = delegates,
     handler = inputHandler,
     handleText = function(self, text)
       for k, v in pairs(delegates) do
@@ -78,8 +82,16 @@ function commandMode(inputHandler, delegates)
       
     end,
     render = function()
-      for k, v in pairs(delegates) do        
+      
+    end,
+    set = function(self)
+      for k, v in pairs(self.delegates) do
         v.element.view:getChild(1).text = k
+      end
+    end,
+    unset = function(self)
+      for k, v in pairs(self.delegates) do
+        v.element.view:getChild(1).text = '.'
       end
     end
   }
@@ -103,7 +115,13 @@ function editTextMode(inputHandler, linkedElement)
       end
     end,
     render = function(self)
+      
+    end,
+    set = function(self)
       self.element.view:getChild(1).text = ">"
+    end,
+    unset = function(self)
+      self.element.view:getChild(1).text = "."
     end
   }
 end
