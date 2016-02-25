@@ -172,7 +172,7 @@ function newItem(addAt)
     view = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "newline" }, buttonOptions = {text = "."} } ),    
   }
 
-  root:getChild(1):addChild(item.view)
+  root:getChild(1):addChild(item.view, addAt)
   root:layoutingPass()
   table.insert(elements, addAt, item)
   return item
