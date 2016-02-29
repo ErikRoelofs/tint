@@ -11,6 +11,11 @@ return function (base, options)
   
   container:addChild( lc:build( "button", buttonMerged ))
   container:addChild( lc:build( "text", textMerged ))
-  
+  container.setCommandKey = function(self, k)
+    if k == nil then
+      k = "."
+    end
+    container:getChild(1).text = k
+  end
   return container
 end
