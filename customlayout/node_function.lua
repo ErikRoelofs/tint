@@ -43,7 +43,9 @@ return function (base, options)
     container:getChild(1):getChild(1).text = k
   end
 
-  
+  container.id = newId()
+  container.etype = "function"
+
   return container
   
 end

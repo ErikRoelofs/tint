@@ -137,13 +137,15 @@ end
 
 function functionEditMode(inputHandler, linkedElement)
   return {
-    handler = inputHnalder,
+    handler = inputHandler,
     element = linkedElement,
     handleText = function(self, text)
       if text == "q" then        
+        self.handler:setCommand(editTextMode(self.handler, self.element:getChild(1):getChild(2)))
       elseif text == "w" then        
+        self.handler:setCommand(editTextMode(self.handler, self.element:getChild(1):getChild(4)))
       end
-      assert(false, "not implemented")
+      --assert(false, "not implemented")
       -- logic
     end,
     handleSpecial = function(self, special)
@@ -205,9 +207,6 @@ end
 function newItem(addAt)
   addAt = addAt or #root.linear:getChild(1).children + 1
   local view = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "newline" }, buttonOptions = {text = "."} } )
-  view.id = newId()
-  view.etype = "text"
-
   root:getChild(1):addChild(view, addAt)  
   return view
 end
@@ -216,8 +215,6 @@ function newFunctionItem(addAt)
   addAt = addAt or #root.linear:getChild(1).children + 1
   
   local view = lc:build("node_function", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "this is a function" }, buttonOptions = {text = "."} } )
-  view.id = newId()
-  view.etype = "function"
   root:getChild(1):addChild(view, addAt)
   return view
 end
