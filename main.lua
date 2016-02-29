@@ -21,12 +21,13 @@ function love.load(arg)
     root = lc:build("root", {})
     root:addChild(lc:build("linear", { direction="v", width="fill", height="wrap", margin = lc.margin(100)} ) )
     require('string')
-  
-    elements = {}    
+          
+    newItem()
+    newFunctionItem()
+    newItem()
     newFunctionItem()
     newItem()
   
-    root:layoutingPass()
     
     inputHandler = {
       activeCommand = { unset = function() end },
@@ -57,7 +58,7 @@ end
 function simpleCommandMode(inputHandler)
   local inputs = { 'q', 'w', 'e', 'r', 't' , 'y', 'u', 'i', 'o', 'p' }
   local delegates = {}
-  for k, v in ipairs(elements) do
+  for k, v in ipairs(root.linear:getChild(1).children) do
     local mode = nil
     if v.etype == "text" then
       mode = editTextMode(inputHandler, v)
@@ -94,12 +95,12 @@ function commandMode(inputHandler, delegates)
     end,
     set = function(self)
       for k, v in pairs(self.delegates) do
-        v.element.view:setCommandKey(k)
+        v.element:setCommandKey(k)
       end
     end,
     unset = function(self)
       for k, v in pairs(self.delegates) do        
-        v.element.view:setCommandKey(nil)
+        v.element:setCommandKey(nil)
       end
     end
   }
@@ -126,10 +127,10 @@ function editTextMode(inputHandler, linkedElement)
       
     end,
     set = function(self)
-      self.element.view:getChild(1).text = ">"
+      self.element:getChild(1).text = ">"
     end,
     unset = function(self)
-      self.element.view:getChild(1).text = "."
+      self.element:getChild(1).text = "."
     end
   }
 end
@@ -151,14 +152,14 @@ function functionEditMode(inputHandler, linkedElement)
     render = function(self)
     end,
     set = function(self)
-      self.element.view:setCommandKey(">")      
-      self.element.view:getChild(1):getChild(2):setCommandKey("q")
-      self.element.view:getChild(1):getChild(4):setCommandKey("w")
+      self.element:setCommandKey(">")      
+      self.element:getChild(1):getChild(2):setCommandKey("q")
+      self.element:getChild(1):getChild(4):setCommandKey("w")
     end,
     unset = function(self)
-      self.element.view:setCommandKey(nil)
-      self.element.view:getChild(1):getChild(2):setCommandKey(nil)
-      self.element.view:getChild(1):getChild(4):setCommandKey(nil)
+      self.element:setCommandKey(nil)
+      self.element:getChild(1):getChild(2):setCommandKey(nil)
+      self.element:getChild(1):getChild(4):setCommandKey(nil)
     end
   }
 end
@@ -194,53 +195,37 @@ function love.textinput(t)
 end
 
 function append(element, text)
-  element.view:getChild(2).text = element.view:getChild(2).text .. text    
+  element:getChild(2).text = element:getChild(2).text .. text    
 end
 
 function backspace(element)
-  element.view:getChild(2).text = string.sub( element.view:getChild(2).text, 1, string.len( element.view:getChild(2).text ) - 1)
-end
-
-function newTextItem()
-  local item = {
-    id = newId(),
-    etype = "text",     
-  }
+  element:getChild(2).text = string.sub( element:getChild(2).text, 1, string.len( element:getChild(2).text ) - 1)
 end
 
 function newItem(addAt)
-  addAt = addAt or #elements + 1
-  local item = {
-    id = newId(),
-    etype = "text",    
-    view = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "newline" }, buttonOptions = {text = "."} } ),    
-  }
+  addAt = addAt or #root.linear:getChild(1).children + 1
+  local view = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "newline" }, buttonOptions = {text = "."} } )
+  view.id = newId()
+  view.etype = "text"
 
-  root:getChild(1):addChild(item.view, addAt)
-  root:layoutingPass()
-  table.insert(elements, addAt, item)
-  return item
+  root:getChild(1):addChild(view, addAt)  
+  return view
 end
 
 function newFunctionItem(addAt)
-  addAt = addAt or #elements + 1
-  local item = {
-    id = newId(),
-    etype = "function",
-    children = {},
-    view = lc:build("node_function", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "this is a function" }, buttonOptions = {text = "."} } ),    
-  }
-
-  root:getChild(1):addChild(item.view, addAt)
-  root:layoutingPass()
-  table.insert(elements, addAt, item)
-  return item
+  addAt = addAt or #root.linear:getChild(1).children + 1
+  
+  local view = lc:build("node_function", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "this is a function" }, buttonOptions = {text = "."} } )
+  view.id = newId()
+  view.etype = "function"
+  root:getChild(1):addChild(view, addAt)
+  return view
 end
 
 function findPosition(element)
-  for k, v in ipairs(elements) do
-    if v.id == element.id then
+  for k, v in ipairs( root:getChild(1).children ) do
+    if v == element then
       return k
     end
-  end
+  end    
 end
