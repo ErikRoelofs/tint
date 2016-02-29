@@ -30,28 +30,35 @@ function love.load(arg)
   
     
     inputHandler = {
-      activeCommand = { unset = function() end },
-      setCommand = function(self, command)
-        self.activeCommand:unset()
-        self.activeCommand = command        
-        self.activeCommand:set()
+      pausedCommands = {},
+      currentCommand = { set = function() end, pause = function() end, unpause = function() end, unset = function() end},
+      addCommand = function(self, command)
+        self.currentCommand:pause()
+        table.insert(self.pausedCommands, self.currentCommand)
+        self.currentCommand = command        
+        self.currentCommand:set()
+      end,
+      endCommand = function(self)
+        self.currentCommand:unset()
+        self.currentCommand = self.pausedCommands[#self.pausedCommands]
+        self.currentCommand:unpause()
+        table.remove(self.pausedCommands)
       end,
       handleText = function(self, text)
-        self.activeCommand:handleText(text)
+        self.currentCommand:handleText(text)
       end,
       handleSpecial = function(self, special)      
-        self.activeCommand:handleSpecial(special)
+        self.currentCommand:handleSpecial(special)
       end,      
       abort = function(self)
-        self:setCommand(simpleCommandMode(self))
-      end,
-      render = function(self)
-        self.activeCommand:render()
-      end
+        if #self.pausedCommands > 1 then
+          self:endCommand()
+        end
+      end,      
     }
     
     initialMode = simpleCommandMode(inputHandler)
-    inputHandler:setCommand(initialMode)
+    inputHandler:addCommand(initialMode)
     
 end
 
@@ -77,21 +84,15 @@ function commandMode(inputHandler, delegates)
     handleText = function(self, text)
       for k, v in pairs(delegates) do
         if text == k then
-          inputHandler:setCommand(v)
+          inputHandler:addCommand(v)
         end
       end     
     end,
     handleSpecial = function(self, special)
       if special == "return" then
         element = newItem()
-        inputHandler:setCommand(editTextMode(self.handler, element))
+        inputHandler:addCommand(editTextMode(self.handler, element))
       end
-    end,
-    setButtons = function()
-      
-    end,
-    render = function()
-      
     end,
     set = function(self)
       for k, v in pairs(self.delegates) do
@@ -102,6 +103,12 @@ function commandMode(inputHandler, delegates)
       for k, v in pairs(self.delegates) do        
         v.element:setCommandKey(nil)
       end
+    end,
+    pause = function(self)
+      
+    end,
+    unpause = function(self)
+      
     end
   }
 end
@@ -120,17 +127,20 @@ function editTextMode(inputHandler, linkedElement)
       if special == "return" then
         local addAfter = findPosition(self.element) + 1
         local element = newItem(addAfter)
-        inputHandler:setCommand(editTextMode(self.handler, element))
+        inputHandler:addCommand(editTextMode(self.handler, element))
       end
-    end,
-    render = function(self)
-      
     end,
     set = function(self)
       self.element:getChild(1).text = ">"
     end,
     unset = function(self)
       self.element:getChild(1).text = "."
+    end,
+    pause = function(self)
+      
+    end,
+    unpause = function(self)
+      
     end
   }
 end
@@ -141,17 +151,15 @@ function functionEditMode(inputHandler, linkedElement)
     element = linkedElement,
     handleText = function(self, text)
       if text == "q" then        
-        self.handler:setCommand(editTextMode(self.handler, self.element:getChild(1):getChild(2)))
+        self.handler:addCommand(editTextMode(self.handler, self.element:getChild(1):getChild(2)))
       elseif text == "w" then        
-        self.handler:setCommand(editTextMode(self.handler, self.element:getChild(1):getChild(4)))
+        self.handler:addCommand(editTextMode(self.handler, self.element:getChild(1):getChild(4)))
       end
       --assert(false, "not implemented")
       -- logic
     end,
     handleSpecial = function(self, special)
       -- logic
-    end,
-    render = function(self)
     end,
     set = function(self)
       self.element:setCommandKey(">")      
@@ -162,6 +170,12 @@ function functionEditMode(inputHandler, linkedElement)
       self.element:setCommandKey(nil)
       self.element:getChild(1):getChild(2):setCommandKey(nil)
       self.element:getChild(1):getChild(4):setCommandKey(nil)
+    end,
+    pause = function(self)
+      
+    end,
+    unpause = function(self)
+      
     end
   }
 end
@@ -171,7 +185,6 @@ function love.update(dt)
 end
 
 function love.draw()
-  inputHandler:render()
   root:layoutingPass()
   root:render()  
 end
