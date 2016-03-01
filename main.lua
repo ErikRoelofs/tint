@@ -16,6 +16,8 @@ function love.load(arg)
     lc:register("edittext", require "customlayout/edittext")
     lc:register("button", require "customlayout/button")
     lc:register("node_function", require "customlayout/node_function")
+    lc:register("node_args", require "customlayout/node_args")
+    lc:register("node_arg", require "customlayout/node_arg")
     
   
     root = lc:build("root", {})
@@ -77,7 +79,7 @@ function determineDelegates()
   for k, v in ipairs(root.linear:getChild(1).children) do
     local mode = nil
     if v.etype == "text" then
-      mode = editTextMode(inputHandler, v)
+      mode = editTextMode(inputHandler, v, true)
     elseif v.etype == "function" then
       mode = functionEditMode(inputHandler, v)    
     end
@@ -100,7 +102,7 @@ function commandMode(inputHandler, delegates)
     handleSpecial = function(self, special)
       if special == "return" then
         element = newItem()
-        inputHandler:replaceCommand(editTextMode(self.handler, element))
+        inputHandler:addCommand(editTextMode(self.handler, element))
       end
     end,
     set = function(self)
@@ -121,10 +123,11 @@ function commandMode(inputHandler, delegates)
   }
 end
 
-function editTextMode(inputHandler, linkedElement)  
+function editTextMode(inputHandler, linkedElement, allowNewlines)  
   return {
     handler = inputHandler,
     element = linkedElement,
+    allowNewlines = allowNewlines,
     handleText = function(self, text)
       self.element:append(text)
     end,
@@ -132,7 +135,7 @@ function editTextMode(inputHandler, linkedElement)
       if special == "backspace" then
         self.element:backspace()
       end
-      if special == "return" then
+      if special == "return" and self.allowNewlines then
         local addAfter = findPosition(self.element) + 1
         local element = newItem(addAfter)
         inputHandler:replaceCommand(editTextMode(self.handler, element))
@@ -162,7 +165,9 @@ function functionEditMode(inputHandler, linkedElement)
         self.handler:addCommand(editTextMode(self.handler, self.element:getReturnType()))
       elseif text == "w" then        
         self.handler:addCommand(editTextMode(self.handler, self.element:getTitle()))
-      end      
+      elseif text == "e" then
+        self.handler:addCommand(argsMode(self.handler, self.element:getArgs()))
+      end
       -- logic
     end,
     handleSpecial = function(self, special)
@@ -176,14 +181,61 @@ function functionEditMode(inputHandler, linkedElement)
       self.element:setCommandKey(nil)
       self.element:getReturnType():setCommandKey(nil)
       self.element:getTitle():setCommandKey(nil)      
+      self.element:getArgs():setCommandKey(nil)
     end,
     unpause = function(self)
       self.element:setCommandKey(">")      
       self.element:getReturnType():setCommandKey("q")
       self.element:getTitle():setCommandKey("w")      
+      self.element:getArgs():setCommandKey("e")
     end
   }
 end
+
+function argsMode(inputHandler, linkedElement)
+  return {
+    handler = inputHandler,
+    element = linkedElement,
+    handleText = function(self, text)
+      self.handler:addCommand( editTextMode( self.handler, self.delegates[text] ) )
+    end,
+    handleSpecial = function(self, special)
+    end,
+    set = function(self)
+    end,
+    unset = function(self)
+    end,
+    pause = function(self)
+      for k, v in ipairs(self.element:getArgsList()) do
+        v:getType():setCommandKey(nil)
+        v:getName():setCommandKey(nil)
+      end
+    end,
+    unpause = function(self)      
+      self:setupDelegates()
+    end,
+    delegates = {},  
+    setupDelegates = function(self)
+      self.currentKey = 0
+      for k, v in ipairs(self.element:getArgsList()) do
+        local key = self:nextKey()
+        v:getType():setCommandKey(key)
+        self.delegates[key] = v:getType()
+        
+        local key = self:nextKey()
+        v:getName():setCommandKey(key)
+        self.delegates[key] = v:getName()
+      end
+    end,
+    keys = { 'q', 'w', 'e', 'r', 't' , 'y', 'u', 'i', 'o', 'p' },
+    currentKey = 0,
+    nextKey = function(self)
+      self.currentKey = self.currentKey + 1
+      return self.keys[self.currentKey]
+    end
+  }
+end
+
 
 function love.update(dt)
 

@@ -25,7 +25,7 @@ return function (base, options)
     self:getChild(2).text = self:getChild(2).text .. text    
   end
 
-  container.backspace = function (element)
+  container.backspace = function (self)
     self:getChild(2).text = string.sub( self:getChild(2).text, 1, string.len( self:getChild(2).text ) - 1)
   end
 

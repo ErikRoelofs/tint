@@ -18,7 +18,8 @@ return function (base, options)
   local returnType = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "<returntype>" }, buttonOptions = {text = "."} } )
   local functionTitle = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "<title>" }, buttonOptions = {text = "."} } )
   local functionKeyword = lc:build("text", { width = "wrap", height = "wrap", margin = lc.margin(5), text = "FUNCTION" } )
-  local functionArgs = lc:build("text",{ width = "wrap", height = "wrap", margin = lc.margin(5), text = "ARGS" } )
+  --local functionArgs = lc:build("text",{ width = "wrap", height = "wrap", margin = lc.margin(5), text = "ARGS" } )
+  local functionArgs = lc:build("node_args",{} )
   local button = lc:build("button", { width = "wrap", height = "wrap", margin = lc.margin(5), text = "." } )
   
   headerContainer:addChild(button)
@@ -52,6 +53,10 @@ return function (base, options)
   
   container.getTitle = function(self)
     return self:getChild(1):getChild(4)
+  end
+
+  container.getArgs = function(self)
+    return self:getChild(1):getChild(5)
   end
 
   return container
