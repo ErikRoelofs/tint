@@ -16,7 +16,6 @@ return function (base, options)
   container:addChild( lc:build( "button", buttonMerged ))
   
   container:addChild(lc:build("node_arg", {}))
-  container:addChild(lc:build("node_arg", {}))
   
   container.setCommandKey = function(self, k)
     if k == nil then

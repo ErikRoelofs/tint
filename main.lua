@@ -1,8 +1,21 @@
+--[[
+  add/delete args
+  vartype instead of edittext
+]]
+
 lastId = 0
 function newId()
   lastId = lastId + 1
   return lastId
 end  
+
+function workspace()
+  return root.linear:getChild(1):getChild(1)
+end
+
+function commandPane()
+  return root.linear:getChild(1):getChild(2)
+end
 
 function love.load(arg)
   
@@ -19,9 +32,15 @@ function love.load(arg)
     lc:register("node_args", require "customlayout/node_args")
     lc:register("node_arg", require "customlayout/node_arg")
     
+    local mainContainer = lc:build("linear", { direction="h", width="fill", height="fill", margin = lc.margin(0)} )
   
     root = lc:build("root", {})
-    root:addChild(lc:build("linear", { direction="v", width="fill", height="wrap", margin = lc.margin(100)} ) )
+    root:addChild(mainContainer)    
+    mainContainer:addChild(lc:build("linear", { direction="v", width="fill", height="fill", margin = lc.margin(20), weight = 3} ) )
+    mainContainer:addChild(lc:build("linear", { direction="v", width="fill", height="fill", margin = lc.margin(20)} ) )
+    
+    root:layoutingPass()
+    
     require('string')
           
     newItem()
@@ -76,7 +95,7 @@ end
 function determineDelegates()
   local inputs = { 'q', 'w', 'e', 'r', 't' , 'y', 'u', 'i', 'o', 'p' }
   local delegates = {}
-  for k, v in ipairs(root.linear:getChild(1).children) do
+  for k, v in ipairs(workspace().children) do
     local mode = nil
     if v.etype == "text" then
       mode = editTextMode(inputHandler, v, true)
@@ -93,7 +112,7 @@ function commandMode(inputHandler, delegates)
     delegates = delegates,
     handler = inputHandler,
     handleText = function(self, text)
-      for k, v in pairs(delegates) do
+      for k, v in pairs(self.delegates) do
         if text == k then
           inputHandler:addCommand(v)
         end
@@ -267,22 +286,22 @@ function love.textinput(t)
 end
 
 function newItem(addAt)
-  addAt = addAt or #root.linear:getChild(1).children + 1
+  addAt = addAt or #(workspace().children) + 1
   local view = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "newline" }, buttonOptions = {text = "."} } )
-  root:getChild(1):addChild(view, addAt)  
+  workspace():addChild(view, addAt)  
   return view
 end
 
 function newFunctionItem(addAt)
-  addAt = addAt or #root.linear:getChild(1).children + 1
+  addAt = addAt or #(workspace().children) + 1
   
   local view = lc:build("node_function", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "this is a function" }, buttonOptions = {text = "."} } )
-  root:getChild(1):addChild(view, addAt)
+  workspace():addChild(view, addAt)
   return view
 end
 
 function findPosition(element)
-  for k, v in ipairs( root:getChild(1).children ) do
+  for k, v in ipairs( workspace().children ) do
     if v == element then
       return k
     end
