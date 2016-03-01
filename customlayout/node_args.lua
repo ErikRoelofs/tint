@@ -25,14 +25,30 @@ return function (base, options)
   end
   
   container.argsList = {
-    container:getChild(2),
-    container:getChild(3)
+    container:getChild(2)
   }
   
   container.getArgsList = function(self)
     return self.argsList
   end
 
+  container.addOne = function(self)
+    local child = lc:build("node_arg", {})
+    container:addChild(child)
+    table.insert(self.argsList, child)
+  end
+  
+  container.removeOne = function(self, toRemove)
+    local index
+    for k, v in ipairs(self.argsList) do
+      if toRemove == v then
+        table.remove(self.argsList, k)        
+        index = k
+        break
+      end
+    end
+    self:removeChild(index+1)
+  end
   
   return container
   

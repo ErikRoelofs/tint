@@ -1,5 +1,4 @@
---[[
-  clear text command
+--[[  
   add/delete args
   vartype instead of edittext
   variable output rendering
@@ -228,6 +227,16 @@ function argsMode(inputHandler, linkedElement)
       self.handler:addCommand( editTextMode( self.handler, self.delegates[text] ) )
     end,
     handleSpecial = function(self, special)
+      if special == "f1" then
+        self.element:addOne()
+      end
+      for k, v in pairs(self.removeKeys) do
+        if k == special then
+          self.element:removeOne(v)
+        end
+      end
+      self:pause()
+      self:unpause()
     end,
     set = function(self)
     end,
@@ -238,13 +247,21 @@ function argsMode(inputHandler, linkedElement)
         v:getType():setCommandKey(nil)
         v:getName():setCommandKey(nil)
       end
+      while #commandPane().children > 0 do
+        commandPane():removeChild(1)
+      end
     end,
     unpause = function(self)      
       self:setupDelegates()
     end,
     delegates = {},  
-    setupDelegates = function(self)
+    setupDelegates = function(self)    
+      commandPane():addChild(lc:build("commandbutton", {width="wrap", height="wrap", textOptions = {text = 'add one'}, buttonOptions = {text = 'f1'}}))
+      
       self.currentKey = 0
+      self.currentFunctionKey = 0
+      self.removeKeys = {}
+      self.delegates = {}
       for k, v in ipairs(self.element:getArgsList()) do
         local key = self:nextKey()
         v:getType():setCommandKey(key)
@@ -253,13 +270,27 @@ function argsMode(inputHandler, linkedElement)
         local key = self:nextKey()
         v:getName():setCommandKey(key)
         self.delegates[key] = v:getName()
+        
+        local key = self:nextFunctionKey()
+        local child = lc:build("commandbutton", {width="wrap", height="wrap", textOptions = {text = 'remove ' .. v:getName():getValue() }, buttonOptions = {text = key}})
+        self.removeKeys[key] = v
+        commandPane():addChild(child) 
       end
+      
+      root:layoutingPass()
+      
     end,
     keys = { 'q', 'w', 'e', 'r', 't' , 'y', 'u', 'i', 'o', 'p' },
     currentKey = 0,
     nextKey = function(self)
       self.currentKey = self.currentKey + 1
       return self.keys[self.currentKey]
+    end,
+    functionKeys = { 'f2', 'f3', 'f4', 'f5', 'f6'},
+    currentFunctionKey = 0,
+    nextFunctionKey = function(self)
+      self.currentFunctionKey = self.currentFunctionKey + 1
+      return self.functionKeys[self.currentFunctionKey ]
     end
   }
 end

@@ -33,5 +33,9 @@ return function (base, options)
     self:getChild(2).text = ''
   end
   
+  container.getValue = function(self)
+    return self:getChild(2).text
+  end
+  
   return container
 end
