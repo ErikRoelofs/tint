@@ -29,6 +29,7 @@ function love.load(arg)
   
     lc = require "load"
     lc:register("edittext", require "customlayout/edittext")
+    lc:register("commandbutton", require "customlayout/commandbutton")
     lc:register("button", require "customlayout/button")
     lc:register("node_function", require "customlayout/node_function")
     lc:register("node_args", require "customlayout/node_args")
@@ -177,7 +178,7 @@ function editTextMode(inputHandler, linkedElement, allowNewlines)
     end,
     unpause = function(self)
       self.element:setCommandKey(">")
-      commandPane():addChild(lc:build("edittext", {width="wrap", height="wrap", textOptions = {text = 'clear'}, buttonOptions = {text = 'f1'}}))
+      commandPane():addChild(lc:build("commandbutton", {width="wrap", height="wrap", textOptions = {text = 'clear'}, buttonOptions = {text = 'f1'}}))
       root:layoutingPass()
     end
   }
