@@ -46,6 +46,14 @@ return function (base, options)
   container.id = newId()
   container.etype = "function"
 
+  container.getReturnType = function(self)
+    return self:getChild(1):getChild(2)
+  end
+  
+  container.getTitle = function(self)
+    return self:getChild(1):getChild(4)
+  end
+
   return container
   
 end

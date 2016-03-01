@@ -126,11 +126,11 @@ function editTextMode(inputHandler, linkedElement)
     handler = inputHandler,
     element = linkedElement,
     handleText = function(self, text)
-      append(linkedElement, text)
+      self.element:append(text)
     end,
     handleSpecial = function(self, special)
       if special == "backspace" then
-        backspace(linkedElement)
+        self.element:backspace()
       end
       if special == "return" then
         local addAfter = findPosition(self.element) + 1
@@ -159,9 +159,9 @@ function functionEditMode(inputHandler, linkedElement)
     element = linkedElement,
     handleText = function(self, text)
       if text == "q" then        
-        self.handler:addCommand(editTextMode(self.handler, self.element:getChild(1):getChild(2)))
+        self.handler:addCommand(editTextMode(self.handler, self.element:getReturnType()))
       elseif text == "w" then        
-        self.handler:addCommand(editTextMode(self.handler, self.element:getChild(1):getChild(4)))
+        self.handler:addCommand(editTextMode(self.handler, self.element:getTitle()))
       end      
       -- logic
     end,
@@ -174,13 +174,13 @@ function functionEditMode(inputHandler, linkedElement)
     end,
     pause = function(self)
       self.element:setCommandKey(nil)
-      self.element:getChild(1):getChild(2):setCommandKey(nil)
-      self.element:getChild(1):getChild(4):setCommandKey(nil)      
+      self.element:getReturnType():setCommandKey(nil)
+      self.element:getTitle():setCommandKey(nil)      
     end,
     unpause = function(self)
       self.element:setCommandKey(">")      
-      self.element:getChild(1):getChild(2):setCommandKey("q")
-      self.element:getChild(1):getChild(4):setCommandKey("w")      
+      self.element:getReturnType():setCommandKey("q")
+      self.element:getTitle():setCommandKey("w")      
     end
   }
 end
@@ -212,14 +212,6 @@ end
 
 function love.textinput(t)  
   inputHandler:handleText(t)
-end
-
-function append(element, text)
-  element:getChild(2).text = element:getChild(2).text .. text    
-end
-
-function backspace(element)
-  element:getChild(2).text = string.sub( element:getChild(2).text, 1, string.len( element:getChild(2).text ) - 1)
 end
 
 function newItem(addAt)

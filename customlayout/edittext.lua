@@ -21,5 +21,14 @@ return function (base, options)
   container.id = newId()
   container.etype = "text"
   
+  container.append = function (self, text)
+    self:getChild(2).text = self:getChild(2).text .. text    
+  end
+
+  container.backspace = function (element)
+    self:getChild(2).text = string.sub( self:getChild(2).text, 1, string.len( self:getChild(2).text ) - 1)
+  end
+
+  
   return container
 end
