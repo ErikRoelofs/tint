@@ -37,8 +37,17 @@ function love.load(arg)
         table.insert(self.pausedCommands, self.currentCommand)
         self.currentCommand = command        
         self.currentCommand:set()
+        self.currentCommand:unpause()
+      end,
+      replaceCommand = function(self, command)
+        self.currentCommand:pause()
+        self.currentCommand:unset()        
+        self.currentCommand = command        
+        self.currentCommand:set()
+        self.currentCommand:unpause()
       end,
       endCommand = function(self)
+        self.currentCommand:pause()
         self.currentCommand:unset()
         self.currentCommand = self.pausedCommands[#self.pausedCommands]
         self.currentCommand:unpause()
@@ -57,12 +66,12 @@ function love.load(arg)
       end,      
     }
     
-    initialMode = simpleCommandMode(inputHandler)
+    initialMode = commandMode(inputHandler, determineDelegates())
     inputHandler:addCommand(initialMode)
     
 end
 
-function simpleCommandMode(inputHandler)
+function determineDelegates()
   local inputs = { 'q', 'w', 'e', 'r', 't' , 'y', 'u', 'i', 'o', 'p' }
   local delegates = {}
   for k, v in ipairs(root.linear:getChild(1).children) do
@@ -74,7 +83,7 @@ function simpleCommandMode(inputHandler)
     end
     delegates[inputs[k]] = mode
   end
-  return commandMode(inputHandler, delegates)
+  return delegates
 end
 
 function commandMode(inputHandler, delegates)
@@ -91,24 +100,23 @@ function commandMode(inputHandler, delegates)
     handleSpecial = function(self, special)
       if special == "return" then
         element = newItem()
-        inputHandler:addCommand(editTextMode(self.handler, element))
+        inputHandler:replaceCommand(editTextMode(self.handler, element))
       end
     end,
     set = function(self)
-      for k, v in pairs(self.delegates) do
-        v.element:setCommandKey(k)
-      end
     end,
     unset = function(self)
-      for k, v in pairs(self.delegates) do        
-        v.element:setCommandKey(nil)
-      end
     end,
     pause = function(self)
-      
+      for k, v in pairs(self.delegates) do        
+        v.element:setCommandKey(nil)
+      end      
     end,
     unpause = function(self)
-      
+      self.delegates = determineDelegates()
+      for k, v in pairs(self.delegates) do
+        v.element:setCommandKey(k)
+      end      
     end
   }
 end
@@ -127,20 +135,20 @@ function editTextMode(inputHandler, linkedElement)
       if special == "return" then
         local addAfter = findPosition(self.element) + 1
         local element = newItem(addAfter)
-        inputHandler:addCommand(editTextMode(self.handler, element))
+        inputHandler:replaceCommand(editTextMode(self.handler, element))
       end
     end,
     set = function(self)
-      self.element:getChild(1).text = ">"
+      
     end,
     unset = function(self)
-      self.element:getChild(1).text = "."
+      
     end,
     pause = function(self)
-      
+      self.element:setCommandKey(nil)
     end,
     unpause = function(self)
-      
+      self.element:setCommandKey(">")
     end
   }
 end
@@ -154,28 +162,25 @@ function functionEditMode(inputHandler, linkedElement)
         self.handler:addCommand(editTextMode(self.handler, self.element:getChild(1):getChild(2)))
       elseif text == "w" then        
         self.handler:addCommand(editTextMode(self.handler, self.element:getChild(1):getChild(4)))
-      end
-      --assert(false, "not implemented")
+      end      
       -- logic
     end,
     handleSpecial = function(self, special)
       -- logic
     end,
     set = function(self)
-      self.element:setCommandKey(">")      
-      self.element:getChild(1):getChild(2):setCommandKey("q")
-      self.element:getChild(1):getChild(4):setCommandKey("w")
     end,
     unset = function(self)
-      self.element:setCommandKey(nil)
-      self.element:getChild(1):getChild(2):setCommandKey(nil)
-      self.element:getChild(1):getChild(4):setCommandKey(nil)
     end,
     pause = function(self)
-      
+      self.element:setCommandKey(nil)
+      self.element:getChild(1):getChild(2):setCommandKey(nil)
+      self.element:getChild(1):getChild(4):setCommandKey(nil)      
     end,
     unpause = function(self)
-      
+      self.element:setCommandKey(">")      
+      self.element:getChild(1):getChild(2):setCommandKey("q")
+      self.element:getChild(1):getChild(4):setCommandKey("w")      
     end
   }
 end
