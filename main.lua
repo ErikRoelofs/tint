@@ -1,5 +1,4 @@
 --[[  
-  add/delete args
   vartype instead of edittext
   variable output rendering
 ]]
@@ -33,6 +32,7 @@ function love.load(arg)
     lc:register("node_function", require "customlayout/node_function")
     lc:register("node_args", require "customlayout/node_args")
     lc:register("node_arg", require "customlayout/node_arg")
+    lc:register("node_vartype", require "customlayout/node_vartype")
     
     local mainContainer = lc:build("linear", { direction="h", width="fill", height="fill", margin = lc.margin(0)} )
   
@@ -183,13 +183,37 @@ function editTextMode(inputHandler, linkedElement, allowNewlines)
   }
 end
 
+function selectVarTypeMode(inputHandler, linkedElement)  
+  return {
+    handler = inputHandler,
+    element = linkedElement,
+    allowNewlines = allowNewlines,
+    handleText = function(self, text)
+      
+    end,
+    handleSpecial = function(self, special)
+    end,
+    set = function(self)
+      
+    end,
+    unset = function(self)
+      
+    end,
+    pause = function(self)
+    end,
+    unpause = function(self)
+    end
+  }
+end
+
+
 function functionEditMode(inputHandler, linkedElement)
   return {
     handler = inputHandler,
     element = linkedElement,
     handleText = function(self, text)
       if text == "q" then        
-        self.handler:addCommand(editTextMode(self.handler, self.element:getReturnType()))
+        self.handler:addCommand(selectVarTypeMode(self.handler, self.element:getReturnType()))
       elseif text == "w" then        
         self.handler:addCommand(editTextMode(self.handler, self.element:getTitle()))
       elseif text == "e" then
@@ -224,7 +248,11 @@ function argsMode(inputHandler, linkedElement)
     handler = inputHandler,
     element = linkedElement,
     handleText = function(self, text)
-      self.handler:addCommand( editTextMode( self.handler, self.delegates[text] ) )
+      if self.delegates[text].etype == "text" then
+        self.handler:addCommand( editTextMode( self.handler, self.delegates[text] ) )
+      else
+        self.handler:addCommand( selectVarTypeMode( self.handler, self.delegates[text] ) )      
+      end
     end,
     handleSpecial = function(self, special)
       if special == "f1" then

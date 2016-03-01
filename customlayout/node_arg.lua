@@ -10,7 +10,7 @@ return function (base, options)
   
   local container = lc:build("linear", {direction = "h", width="wrap", height="wrap"})
   
-  local argType = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "<argtype>" }, buttonOptions = {text = "."} } )
+  local argType = lc:build("node_vartype", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "<argtype>" }, buttonOptions = {text = "."} } )
   local argName = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "argname" }, buttonOptions = {text = "."} } )
   --local argDefault = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "default" }, buttonOptions = {text = "."} } )
   

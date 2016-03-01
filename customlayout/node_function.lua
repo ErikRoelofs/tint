@@ -15,7 +15,7 @@ return function (base, options)
   
   local container = lc:build("linear", {direction = "v", width="wrap", height="wrap"})
   local headerContainer = lc:build("linear", {direction = "h", width="wrap", height="wrap"})
-  local returnType = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "<returntype>" }, buttonOptions = {text = "."} } )
+  local returnType = lc:build("node_vartype", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "<returntype>" }, buttonOptions = {text = "."} } )
   local functionTitle = lc:build("edittext", { width = "wrap", height = "wrap", margin = lc.margin(5), textOptions = { text = "<title>" }, buttonOptions = {text = "."} } )
   local functionKeyword = lc:build("text", { width = "wrap", height = "wrap", margin = lc.margin(5), text = "FUNCTION" } )
   --local functionArgs = lc:build("text",{ width = "wrap", height = "wrap", margin = lc.margin(5), text = "ARGS" } )
