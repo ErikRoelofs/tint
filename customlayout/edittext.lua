@@ -29,6 +29,9 @@ return function (base, options)
     self:getChild(2).text = string.sub( self:getChild(2).text, 1, string.len( self:getChild(2).text ) - 1)
   end
 
+  container.clear = function(self)
+    self:getChild(2).text = ''
+  end
   
   return container
 end

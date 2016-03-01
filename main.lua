@@ -1,6 +1,8 @@
 --[[
+  clear text command
   add/delete args
   vartype instead of edittext
+  variable output rendering
 ]]
 
 lastId = 0
@@ -159,6 +161,9 @@ function editTextMode(inputHandler, linkedElement, allowNewlines)
         local element = newItem(addAfter)
         inputHandler:replaceCommand(editTextMode(self.handler, element))
       end
+      if special == "f1" then
+        self.element:clear()
+      end
     end,
     set = function(self)
       
@@ -168,9 +173,12 @@ function editTextMode(inputHandler, linkedElement, allowNewlines)
     end,
     pause = function(self)
       self.element:setCommandKey(nil)
+      commandPane():removeChild(1)
     end,
     unpause = function(self)
       self.element:setCommandKey(">")
+      commandPane():addChild(lc:build("edittext", {width="wrap", height="wrap", textOptions = {text = 'clear'}, buttonOptions = {text = 'f1'}}))
+      root:layoutingPass()
     end
   }
 end
@@ -263,18 +271,19 @@ end
 function love.draw()
   root:layoutingPass()
   root:render()  
+  if debug then
+    love.graphics.setColor(255,255,255,255)
+    love.graphics.print(keyname, 0,0)
+  end
 end
 
+keyname = ''
 function love.keypressed(key, unicode)
   if key == "escape" then
     inputHandler:abort()
   end
-  if key == "backspace" then
-    inputHandler:handleSpecial("backspace")
-  end
-  if key == "return" then
-    inputHandler:handleSpecial("return")
-  end
+  inputHandler:handleSpecial(key)
+  keyname = key
 end
 
 function love.keyreleased(key)
