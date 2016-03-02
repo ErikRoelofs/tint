@@ -187,21 +187,32 @@ function selectVarTypeMode(inputHandler, linkedElement)
   return {
     handler = inputHandler,
     element = linkedElement,
+    varTypes = {
+      q = "<sometype>",
+      w = "<othertype>",
+      e = "<moretype>",
+      r = "<lasttype>"
+    },
     allowNewlines = allowNewlines,
     handleText = function(self, text)
-      
+      self.element:setValue(self.varTypes[text])
     end,
     handleSpecial = function(self, special)
     end,
-    set = function(self)
-      
+    set = function(self)      
     end,
-    unset = function(self)
-      
+    unset = function(self)      
     end,
     pause = function(self)
+      while #commandPane().children > 0 do
+        commandPane():removeChild(1)
+      end      
     end,
     unpause = function(self)
+      for k, v in pairs(self.varTypes) do
+        local child = lc:build("commandbutton", {width="wrap", height="wrap", textOptions={text= v}, buttonOptions={text=k}})
+        commandPane():addChild(child)
+      end
     end
   }
 end
